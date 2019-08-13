@@ -69,6 +69,7 @@
   <properties>
     <!-- this is for running the tests on JDK9+ where we add JAXB to the test's class path manually -->
     <jaxb.version>2.3.1</jaxb.version>
+    <jboss.extra.opts></jboss.extra.opts>
   </properties>
 
 
@@ -94,7 +95,7 @@
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
               <systemProperties>
-                <jboss.options>${jboss.extra.opts}</jboss.options>
+                <jboss.options>-javaagent:/home/jmartisk/.m2/repository/org/jacoco/org.jacoco.agent/0.8.4/org.jacoco.agent-0.8.4-runtime.jar=destfile=${project.build.directory}/jacoco.exec,inclnolocationclasses=true ${jboss.extra.opts}</jboss.options>
               </systemProperties>
               <environmentVariables>
                 <JBOSS_HOME>${project.build.directory}/wildfly-servlet-${version.wildfly}</JBOSS_HOME>
@@ -153,14 +154,17 @@
 
     <profile>
       <id>coverage</id>
-      <properties>
-        <argLine>@{jacocoArgLine}</argLine>
-      </properties>
+<!--      <properties>-->
+<!--        <argLine>@{jacocoArgLine}</argLine>-->
+<!--      </properties>-->
       <build>
         <plugins>
           <plugin>
             <groupId>org.jacoco</groupId>
             <artifactId>jacoco-maven-plugin</artifactId>
+       <!--     <configuration>
+              <includes>${project.basedir}/../../implementation/target/classes/*</includes>
+            </configuration>-->
           </plugin>
         </plugins>
       </build>
