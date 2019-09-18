@@ -35,12 +35,14 @@ public class RawAnnotationInfo implements AnnotationInfo {
 
     private String annotationName;
 
+    private String metadataName;
+
     public RawAnnotationInfo() {
 
     }
 
     public RawAnnotationInfo(String name, boolean absolute, String[] tags, String unit,
-            String description, String displayName, boolean reusable, String annotationName) {
+            String description, String displayName, boolean reusable, String annotationName, String metadataName) {
         this.name = name;
         this.absolute = absolute;
         this.tags = tags;
@@ -49,6 +51,7 @@ public class RawAnnotationInfo implements AnnotationInfo {
         this.displayName = displayName;
         this.reusable = reusable;
         this.annotationName = annotationName;
+        this.metadataName = metadataName;
     }
 
     public String getName() {
@@ -153,6 +156,11 @@ public class RawAnnotationInfo implements AnnotationInfo {
     @Override
     public String annotationName() {
         return annotationName;
+    }
+
+    @Override
+    public String metadataName() {
+        return metadataName;
     }
 
 }

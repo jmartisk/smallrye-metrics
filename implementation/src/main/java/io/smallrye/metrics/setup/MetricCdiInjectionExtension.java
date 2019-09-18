@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.Set;
 
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.Default;
@@ -40,6 +41,8 @@ import javax.enterprise.inject.spi.AnnotatedParameter;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.BeforeBeanDiscovery;
+import javax.enterprise.inject.spi.BeforeShutdown;
+import javax.enterprise.inject.spi.DeploymentException;
 import javax.enterprise.inject.spi.Extension;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.enterprise.inject.spi.ProcessAnnotatedType;
@@ -58,6 +61,8 @@ import org.eclipse.microprofile.metrics.annotation.ConcurrentGauge;
 import org.eclipse.microprofile.metrics.annotation.Counted;
 import org.eclipse.microprofile.metrics.annotation.Gauge;
 import org.eclipse.microprofile.metrics.annotation.Metered;
+import org.eclipse.microprofile.metrics.annotation.NamedMetadata;
+import org.eclipse.microprofile.metrics.annotation.NamedMetadatas;
 import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.jboss.logging.Logger;
 
@@ -124,6 +129,35 @@ public class MetricCdiInjectionExtension implements Extension {
         }
     }
 
+    private <X> void discoverNamedMetadatas(
+            @Observes @WithAnnotations({ NamedMetadata.class, NamedMetadatas.class }) ProcessAnnotatedType<X> pat) {
+        Set<NamedMetadata> annotations = pat.getAnnotatedType().getAnnotations(NamedMetadata.class);
+        for (NamedMetadata annotation : annotations) {
+            String name = annotation.name();
+            if (NamedMetadataRepository.get(name) == null) {
+                if (annotation.type().equals(MetricType.GAUGE) && annotation.reusable()) {
+                    throw new DeploymentException("Gauges must not be reusable. Offending annotation: " + annotation);
+                }
+                Metadata metadata = Metadata.builder()
+                        .withType(annotation.type())
+                        .withDescription(annotation.description())
+                        .withUnit(annotation.unit())
+                        .withDisplayName(annotation.displayName())
+                        .withName(annotation.metricName())
+                        .reusable(annotation.reusable())
+                        .build();
+                log.debug("Discovered named metadata object: " + name);
+                NamedMetadataRepository.add(name, metadata);
+            } else {
+                throw new DeploymentException("Duplicate @NamedMetadata annotation named " + name);
+            }
+        }
+    }
+
+    void clearNamedMetadata(@Observes BeforeShutdown event) {
+        NamedMetadataRepository.clear();
+    }
+
     // THORN-2068: MicroProfile Rest Client basic support
     private <X> void findAnnotatedInterfaces(@Observes @WithAnnotations({ Counted.class, Gauge.class, Metered.class,
             Timed.class, ConcurrentGauge.class }) ProcessAnnotatedType<X> pat) {
@@ -182,7 +216,6 @@ public class MetricCdiInjectionExtension implements Extension {
     }
 
     void registerMetrics(@Observes AfterDeploymentValidation adv, BeanManager manager) {
-
         // Produce and register custom metrics
         MetricRegistry registry = getReference(manager, MetricRegistry.class);
         MetricName name = getReference(manager, MetricName.class);
@@ -215,7 +248,8 @@ public class MetricCdiInjectionExtension implements Extension {
                         metricAnnotation.description(),
                         metricAnnotation.displayName(),
                         type,
-                        false);
+                        false,
+                        metricAnnotation.metadata());
                 Tag[] tags = TagsUtils.parseTagsAsArray(metricAnnotation.tags());
                 registry.register(metadata, getReference(manager, bean.getValue().getBaseType(), bean.getKey()), tags);
             } else {
@@ -226,10 +260,14 @@ public class MetricCdiInjectionExtension implements Extension {
         for (Map.Entry<Bean<?>, List<AnnotatedMember<?>>> entry : metricsFromAnnotatedMethods.entrySet()) {
             Bean<?> bean = entry.getKey();
             for (AnnotatedMember<?> method : entry.getValue()) {
-                MetricsMetadata.registerMetrics(registry,
-                        new MetricResolver(),
-                        beanInfoAdapter.convert(bean.getBeanClass()),
-                        memberInfoAdapter.convert(method.getJavaMember()));
+                try {
+                    MetricsMetadata.registerMetrics(registry,
+                            new MetricResolver(),
+                            beanInfoAdapter.convert(bean.getBeanClass()),
+                            memberInfoAdapter.convert(method.getJavaMember()));
+                } catch (Exception e) {
+                    adv.addDeploymentProblem(e);
+                }
             }
         }
 

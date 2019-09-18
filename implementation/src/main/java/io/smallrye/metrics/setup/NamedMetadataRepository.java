@@ -15,26 +15,27 @@
  * limitations under the License.
  */
 
-package io.smallrye.metrics.elementdesc;
+package io.smallrye.metrics.setup;
 
-public interface AnnotationInfo {
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-    String name();
+import org.eclipse.microprofile.metrics.Metadata;
 
-    boolean absolute();
+public class NamedMetadataRepository {
 
-    String[] tags();
+    // TODO: should also be keyed by TCCL or something to distinguish applications in an appserver?
+    private static final Map<String, Metadata> namedMetadata = new ConcurrentHashMap<>();
 
-    String unit();
+    static void add(String name, Metadata metadata) {
+        namedMetadata.put(name, metadata);
+    }
 
-    String description();
+    public static Metadata get(String name) {
+        return namedMetadata.get(name);
+    }
 
-    String displayName();
-
-    boolean reusable();
-
-    String annotationName();
-
-    String metadataName();
-
+    static void clear() {
+        namedMetadata.clear();
+    }
 }

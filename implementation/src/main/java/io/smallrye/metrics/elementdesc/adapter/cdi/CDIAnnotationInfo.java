@@ -160,6 +160,23 @@ public class CDIAnnotationInfo implements AnnotationInfo {
     }
 
     @Override
+    public String metadataName() {
+        if (annotation instanceof Counted) {
+            return ((Counted) annotation).metadata();
+        } else if (annotation instanceof ConcurrentGauge) {
+            return ((ConcurrentGauge) annotation).metadata();
+        } else if (annotation instanceof Gauge) {
+            return ((Gauge) annotation).metadata();
+        } else if (annotation instanceof Metered) {
+            return ((Metered) annotation).metadata();
+        } else if (annotation instanceof Timed) {
+            return ((Timed) annotation).metadata();
+        } else {
+            throw new IllegalArgumentException("Unknown metric annotation type " + annotation.annotationType());
+        }
+    }
+
+    @Override
     public String toString() {
         return annotation.toString();
     }

@@ -21,6 +21,7 @@ import java.util.Collections;
 
 import javax.enterprise.inject.Vetoed;
 
+import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.Tag;
 import org.eclipse.microprofile.metrics.annotation.ConcurrentGauge;
@@ -34,6 +35,7 @@ import io.smallrye.metrics.elementdesc.AnnotationInfo;
 import io.smallrye.metrics.elementdesc.BeanInfo;
 import io.smallrye.metrics.elementdesc.MemberInfo;
 import io.smallrye.metrics.elementdesc.MemberType;
+import io.smallrye.metrics.setup.NamedMetadataRepository;
 
 @Vetoed
 public class MetricResolver {
@@ -70,7 +72,7 @@ public class MetricResolver {
 
     private <T extends Annotation> Of<T> elementResolverOf(MemberInfo element, Class<T> metric) {
         AnnotationInfo annotation = element.getAnnotation(metric);
-        String name = metricName(element, metric, annotation.name(), annotation.absolute());
+        String name = metricName(element, metric, annotation.name(), annotation.absolute(), annotation.metadataName());
         Tag[] tags = metricTags(annotation);
         return new DoesHaveMetric<>(annotation, name, tags);
     }
@@ -78,7 +80,8 @@ public class MetricResolver {
     private <T extends Annotation> Of<T> beanResolverOf(MemberInfo element, Class<T> metric, BeanInfo bean) {
         if (bean.isAnnotationPresent(metric)) {
             AnnotationInfo annotation = bean.getAnnotation(metric);
-            String name = metricName(bean, element, metric, annotation.name(), annotation.absolute());
+            String name = metricName(bean, element, metric, annotation.name(), annotation.absolute(),
+                    annotation.metadataName());
             Tag[] tags = metricTags(annotation);
             return new DoesHaveMetric<>(annotation, name, tags);
         } else if (bean.getSuperclass() != null) {
@@ -88,16 +91,36 @@ public class MetricResolver {
     }
 
     // TODO: should be grouped with the metric name strategy
-    private String metricName(MemberInfo element, Class<? extends Annotation> type, String name, boolean absolute) {
-        String metric = name.isEmpty() ? defaultName(element, type) : metricName.of(name);
-        return absolute ? metric : MetricRegistry.name(element.getDeclaringClassName(), metric);
+    private String metricName(MemberInfo element, Class<? extends Annotation> type, String name, boolean absolute,
+            String metadataName) {
+        if (metadataName == null || metadataName.isEmpty()) {
+            String metric = name.isEmpty() ? defaultName(element, type) : metricName.of(name);
+            return absolute ? metric : MetricRegistry.name(element.getDeclaringClassName(), metric);
+        } else { // this metric is using a NamedMetadata object
+            Metadata namedMetadata = NamedMetadataRepository.get(metadataName);
+            if (namedMetadata == null) {
+                throw new IllegalStateException(
+                        "NamedMetadata object named " + metadataName + " not found for metric declared on " + element);
+            }
+            return namedMetadata.getName();
+        }
     }
 
     private String metricName(BeanInfo bean, MemberInfo element, Class<? extends Annotation> type, String name,
-            boolean absolute) {
-        String metric = name.isEmpty() ? bean.getSimpleName() : metricName.of(name);
-        return absolute ? MetricRegistry.name(metric, defaultName(element, type))
-                : MetricRegistry.name(bean.getPackageName(), metric, defaultName(element, type));
+            boolean absolute, String metadataName) {
+        if (metadataName == null || metadataName.isEmpty()) {
+            String metric = name.isEmpty() ? bean.getSimpleName() : metricName.of(name);
+            return absolute ? MetricRegistry.name(metric, defaultName(element, type))
+                    : MetricRegistry.name(bean.getPackageName(), metric, defaultName(element, type));
+        } else { // this metric is using a NamedMetadata object
+            Metadata namedMetadata = NamedMetadataRepository.get(metadataName);
+            if (namedMetadata == null) {
+                throw new IllegalStateException(
+                        "NamedMetadata object named " + metadataName + " not found for metric declared on " + element);
+            }
+            return namedMetadata.getName();
+        }
+
     }
 
     private String defaultName(MemberInfo element, Class<? extends Annotation> type) {
