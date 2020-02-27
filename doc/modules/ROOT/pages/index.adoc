@@ -1,0 +1,17 @@
+[[index]]                                                                                                
+= SmallRye Metrics Documentation
+
+SmallRye Metrics is an implementation of the MicroProfile Metrics specification.
+
+image:smallrye_project_logo.svg[]
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec efficitur, risus a sagittis blandit, sem dui mollis ante, ac tincidunt elit erat vel odio. Proin pellentesque at orci id tempor. Phasellus nibh lectus, commodo id tempus ac, faucibus quis ex. Mauris ultrices est dignissim felis varius egestas. Nullam malesuada molestie mi non accumsan. Praesent vulputate enim eu elit condimentum ultricies. Maecenas vulputate condimentum odio non vestibulum. Cras nec sapien bibendum, iaculis velit sit amet, elementum libero. Curabitur ultrices augue gravida, eleifend mi ut, rutrum mi. Curabitur id tincidunt massa, eu pharetra neque. Nunc scelerisque sit amet augue et malesuada. Vestibulum a purus consequat, molestie nulla non, efficitur orci. Mauris tincidunt tincidunt maximus.
+
+Fusce ullamcorper scelerisque diam, at posuere quam rhoncus id. Sed sit amet tristique sem. Cras pretium dui in massa vestibulum laoreet. Nam luctus consectetur tortor, in interdum turpis iaculis a. Vivamus ac aliquet nisi, quis semper quam. Phasellus sem purus, consectetur at tempor nec, placerat et eros. Quisque aliquam ut magna sit amet condimentum. Cras libero nisi, mollis in facilisis id, ornare sed urna. Nunc arcu velit, pretium vitae arcu ac, ultricies luctus nibh. Donec ultricies consequat massa, quis lacinia orci. Fusce felis mauris, tempor a congue sed, accumsan eu dolor. In venenatis eget erat et porta. Mauris lobortis suscipit orci. Maecenas felis magna, placerat a augue quis, mollis auctor nibh.
+
+[[more-resources]]
+== More Resources
+
+* https://github.com/smallrye/smallrye-metrics/[GitHub project repository]
+* https://github.com/eclipse/microprofile-metrics/[Eclipse MicroProfile Metrics]
+

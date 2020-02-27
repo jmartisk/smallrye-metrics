@@ -1,0 +1,4 @@
+[[extended-metadata]]
+= Extended metadata
+
+TODO: how to use the extended metadata

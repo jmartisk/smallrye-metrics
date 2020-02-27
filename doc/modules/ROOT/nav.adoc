@@ -1,0 +1,9 @@
+* xref:index.adoc[Index]
+
+.Enhancements on top of the specification
+
+* xref:extended-metadata.adoc[Extended metadata]
+
+.Integrating into runtimes
+
+* xref:runtimes-integration.adoc[Integrating SmallRye Metrics]
