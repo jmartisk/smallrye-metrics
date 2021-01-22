@@ -28,6 +28,7 @@ import org.eclipse.microprofile.metrics.Timer;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
+import io.smallrye.metrics.MemberToMetricMappings;
 
 public class MpMetricRegistryAdapter implements MetricRegistry {
 
@@ -37,9 +38,14 @@ public class MpMetricRegistryAdapter implements MetricRegistry {
     private Map<MetricDescriptor, MeterHolder> constructedMeters = new ConcurrentHashMap<>();
     private Map<String, MpMetadata> metadataMap = new ConcurrentHashMap<>();
 
+    private MemberToMetricMappings memberToMetricMappings;
+
     public MpMetricRegistryAdapter(Type type, MeterRegistry registry) {
         this.type = type;
         this.registry = registry;
+        if (type == Type.APPLICATION) {
+            memberToMetricMappings = new MemberToMetricMappings();
+        }
     }
 
     @Override
@@ -653,8 +659,7 @@ public class MpMetricRegistryAdapter implements MetricRegistry {
 
     @Override
     public Type getType() {
-        // In Micrometer mode, we don't apply the concept of metric registry types
-        return null;
+        return type;
     }
 
     Tags scopeTags(Tag... tags) {
@@ -695,4 +700,9 @@ public class MpMetricRegistryAdapter implements MetricRegistry {
                     cce);
         }
     }
+
+    public MemberToMetricMappings getMemberToMetricMappings() {
+        return memberToMetricMappings;
+    }
+
 }
