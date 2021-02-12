@@ -199,6 +199,7 @@ public class ExponentiallyDecayingReservoir implements Reservoir {
                 final long oldStartTime = startTime;
                 this.startTime = currentTimeInSeconds();
                 final double scalingFactor = exp(-alpha * (startTime - oldStartTime));
+                System.out.println("SCALING FACTOR = " + scalingFactor);
                 if (Double.compare(scalingFactor, 0) == 0) {
                     values.clear();
                 } else {
@@ -207,6 +208,8 @@ public class ExponentiallyDecayingReservoir implements Reservoir {
                         final WeightedSnapshot.WeightedSample sample = values.remove(key);
                         final WeightedSnapshot.WeightedSample newSample = new WeightedSnapshot.WeightedSample(sample.value,
                                 sample.weight * scalingFactor);
+//                        System.out.println("old weight=" + sample.weight);
+//                        System.out.println("new weight=" + sample.weight * scalingFactor);
                         values.put(key * scalingFactor, newSample);
                     }
                 }
